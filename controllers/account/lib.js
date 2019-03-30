@@ -1,13 +1,8 @@
 const User = require('../../schema/schemaUser.js');
+const Article = require('../../schema/schemaArticles.js');
 const passwordHash = require("password-hash");
 
 function signup(req, res) {
-   /* User.find({
-        email: 'e3@gmail.com'
-    }, function (err, result){
-        console.log(err);
-        console.log(result);
-    })*/
 
     if (!req.body.email || !req.body.password) {
         //Le cas où l'email ou bien le password ne serait pas soumit ou nul
@@ -108,6 +103,84 @@ function login(req, res) {
     }
 }
 
+function smokingrolls(req, res){
 
+    var rolls = {
+        brand: req.body.brand
+    }
+    var findRolls = new Promise(function (resolve, reject) {
+        Article.findOne({
+            brand: req.body.brand
+        }, function (err, result) {
+            if (err) {
+                reject(500);
+            } else {
+                if (result) {
+                    reject(204)
+                } else {
+                    resolve(true)
+                }
+            }
+        })
+    })
+
+    findRolls.then(function () {
+        var _u = new Article(rolls);
+        _u.save(function (err, rolls) {
+            if (err) {
+                res.status(500).json({
+                    "text": "Erreur interne"
+                })
+            } else {
+                res.status(200).json({
+                    "text": "Succès",
+                    "brand": rolls.brand
+                })
+            }
+        })
+    }, function (error) {
+        switch (error) {
+            case 500:
+                res.status(500).json({
+                    "text": "Erreur interne"
+                })
+                break;
+            case 204:
+                res.status(204).json({
+                    "text": "L'adresse email existe déjà"
+                })
+                break;
+            default:
+                res.status(500).json({
+                    "text": "Erreur interne"
+                })
+        }
+    })
+    /*
+    Article.findOne({
+        brand: "ocb"
+    },function (err, article) {
+        if (err) {
+            res.status(500).json({
+                "text": "Erreur interne"
+            })
+        }
+        else if(!article){
+            res.status(401).json({
+                "text": "Pas de feuilles ocb"
+            })
+        }
+        else
+        {
+            res.status(201).json({
+                "text": "Feuilles ocb"
+            })
+        }
+    })*/
+}
+
+exports.smokingrolls = smokingrolls;
 exports.login = login;
 exports.signup = signup;
+
+/*Creation schema +export ensuite fonction here pour etre appeler coté client*/
